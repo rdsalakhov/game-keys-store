@@ -1,0 +1,4 @@
+DROP TABLE payment_sessions CASCADE ;
+DROP TABLE `keys` CASCADE ;
+DROP TABLE games CASCADE ;
+DROP TABLE sellers CASCADE ;

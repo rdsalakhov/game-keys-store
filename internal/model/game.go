@@ -6,5 +6,4 @@ type Game struct {
 	Description string  `json:"description"`
 	Price       float32 `json:"price"`
 	OnSale      bool    `json:"on_sale"`
-	SellerID    int     `json:"seller_id"`
 }

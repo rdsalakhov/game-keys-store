@@ -27,6 +27,23 @@ func (repo *SellerRepository) Find(ID int) (*model.Seller, error) {
 	return seller, nil
 }
 
+func (repo *SellerRepository) FindByEmail(email string) (*model.Seller, error) {
+	selectQuery := "SELECT id, url, account, email, encrypted_password FROM sellers WHERE email = ?"
+	seller := &model.Seller{}
+	if err := repo.store.db.QueryRow(selectQuery, email).Scan(
+		&seller.ID,
+		&seller.URL,
+		&seller.Account,
+		&seller.Email,
+		&seller.EncryptedPassword); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.ErrRecordNotFound
+		}
+		return nil, err
+	}
+	return seller, nil
+}
+
 func (repo *SellerRepository) Create(seller *model.Seller) error {
 	insertQuery := "INSERT INTO sellers (url, account, email, encrypted_password) VALUES (?, ?, ?, ?);"
 	getIdQuery := "select LAST_INSERT_ID();"

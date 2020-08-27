@@ -7,4 +7,5 @@ type IGameRepository interface {
 	Find(int) (*model.Game, error)
 	FindByTitle(string) (*model.Game, error)
 	FindAll() ([]*model.Game, error)
+	DeleteByID(int) error
 }

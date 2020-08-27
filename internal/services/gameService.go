@@ -31,3 +31,8 @@ func (service *GameService) FindAll() ([]*model.Game, error) {
 	}
 	return games, nil
 }
+
+func (service *GameService) DeleteByID(id int) error {
+	err := service.Store.Game().DeleteByID(id)
+	return err
+}

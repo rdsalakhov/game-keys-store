@@ -76,6 +76,23 @@ func (repo *GameRepository) FindAll() ([]*model.Game, error) {
 
 }
 
+func (repo *GameRepository) DeleteByID(ID int) error {
+	deleteQuery := "DELETE FROM games WHERE id = ?"
+	result, err := repo.store.db.Exec(deleteQuery, ID)
+	if err != nil {
+		return err
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return store.ErrRecordNotFound
+	}
+
+	return nil
+}
+
 func (repo *GameRepository) Create(game *model.Game) error {
 	insertQuery := "INSERT INTO games (title, description, price, on_sale, seller_id) VALUES (?, ?, ?, ?, ?);"
 	getIdQuery := "select LAST_INSERT_ID();"

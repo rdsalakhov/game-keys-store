@@ -230,3 +230,27 @@ func (server *Server) handleFindAllGames() http.HandlerFunc {
 		server.respond(w, r, http.StatusOK, games)
 	})
 }
+
+func (server *Server) handleDeleteGameByID() http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		id, err := strconv.Atoi(vars["id"])
+		if err != nil {
+			server.error(w, r, http.StatusInternalServerError, err)
+			return
+		}
+
+		service := &services.GameService{
+			Store: server.store,
+		}
+
+		err = service.DeleteByID(id)
+		if err == store.ErrRecordNotFound {
+			server.respond(w, r, http.StatusNotFound, nil)
+		} else if err != nil {
+			server.error(w, r, http.StatusInternalServerError, err)
+			return
+		}
+		server.respond(w, r, http.StatusNoContent, nil)
+	})
+}

@@ -55,6 +55,7 @@ func (repo *GameRepository) Create(game *model.Game) error {
 		game.Description,
 		game.Price,
 		game.OnSale,
+		game.SellerID,
 	); err != nil {
 		return err
 	}

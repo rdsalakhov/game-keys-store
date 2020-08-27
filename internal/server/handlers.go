@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/rdsalakhov/game-keys-store/internal/model"
+	"github.com/rdsalakhov/game-keys-store/internal/services"
 	"net/http"
 	"os"
 	"strconv"
@@ -34,7 +35,9 @@ func (server *Server) handleLogin() http.HandlerFunc {
 				server.error(w, r, http.StatusInternalServerError, err)
 				return
 			}
-			SaveAuth(server.redis, seller, tokenDetails)
+			if err := SaveAuth(server.redis, seller, tokenDetails); err != nil {
+				server.error(w, r, http.StatusInternalServerError, err)
+			}
 			http.SetCookie(w, &http.Cookie{
 				Name:       accessTokenCookie,
 				Value:      tokenDetails.AccessToken,
@@ -74,7 +77,10 @@ func (server *Server) handleRegister() http.HandlerFunc {
 			URL:      req.URL,
 			Account:  req.Account,
 		}
-		seller.BeforeCreate()
+		if err := seller.BeforeCreate(); err != nil {
+			server.error(w, r, http.StatusInternalServerError, err)
+		}
+
 		if err := server.store.Seller().Create(seller); err != nil {
 			server.error(w, r, http.StatusUnprocessableEntity, err)
 			return
@@ -146,4 +152,40 @@ func (server *Server) handleRefresh() http.HandlerFunc {
 		server.respond(w, r, http.StatusOK, nil)
 		return
 	}
+}
+
+func (server *Server) handlePostGame() http.HandlerFunc {
+	type request struct {
+		Title       string  `json:"title"`
+		Description string  `json:"description"`
+		Price       float32 `json:"price"`
+	}
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		req := &request{}
+		if err := json.NewDecoder(r.Body).Decode(req); err != nil {
+			server.error(w, r, http.StatusBadRequest, err)
+			return
+		}
+		sellerID := r.Context().Value(contextKeyID).(int)
+		game := model.Game{
+			Title:       req.Title,
+			Description: req.Description,
+			Price:       req.Price,
+			OnSale:      true,
+			SellerID:    sellerID,
+		}
+
+		if err := game.Validate(); err != nil {
+			server.error(w, r, http.StatusUnprocessableEntity, err)
+			return
+		}
+
+		service := services.GameService{Store: server.store}
+		if err := service.AddGame(&game); err != nil {
+			server.error(w, r, http.StatusInternalServerError, err)
+			return
+		}
+		server.respond(w, r, http.StatusOK, game)
+	})
 }

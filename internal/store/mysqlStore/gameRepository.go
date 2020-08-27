@@ -46,6 +46,36 @@ func (repo *GameRepository) FindByTitle(title string) (*model.Game, error) {
 	return game, nil
 }
 
+func (repo *GameRepository) FindAll() ([]*model.Game, error) {
+	selectQuery := "SELECT id, title, description, price, on_sale, seller_id FROM games"
+	games := []*model.Game{}
+	rows, err := repo.store.db.Query(selectQuery)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.ErrRecordNotFound
+		}
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		game := &model.Game{}
+		if err := rows.Scan(
+			&game.ID,
+			&game.Title,
+			&game.Description,
+			&game.Price,
+			&game.OnSale,
+			&game.SellerID); err != nil {
+			return nil, err
+		}
+		games = append(games, game)
+	}
+	return games, nil
+
+}
+
 func (repo *GameRepository) Create(game *model.Game) error {
 	insertQuery := "INSERT INTO games (title, description, price, on_sale, seller_id) VALUES (?, ?, ?, ?, ?);"
 	getIdQuery := "select LAST_INSERT_ID();"

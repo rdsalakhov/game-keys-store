@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/gorilla/mux"
 	"github.com/rdsalakhov/game-keys-store/internal/model"
 	"github.com/rdsalakhov/game-keys-store/internal/services"
+	"github.com/rdsalakhov/game-keys-store/internal/store"
 	"net/http"
 	"os"
 	"strconv"
@@ -181,11 +183,50 @@ func (server *Server) handlePostGame() http.HandlerFunc {
 			return
 		}
 
-		service := services.GameService{Store: server.store}
+		service := &services.GameService{
+			Store: server.store,
+		}
 		if err := service.AddGame(&game); err != nil {
 			server.error(w, r, http.StatusInternalServerError, err)
 			return
 		}
 		server.respond(w, r, http.StatusOK, game)
+	})
+}
+
+func (server *Server) handleFindGameByID() http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		id, err := strconv.Atoi(vars["id"])
+		if err != nil {
+			server.error(w, r, http.StatusInternalServerError, err)
+			return
+		}
+
+		service := &services.GameService{
+			Store: server.store,
+		}
+
+		game, err := service.FindByID(id)
+		if err == store.ErrRecordNotFound {
+
+		} else if err != nil && err != store.ErrRecordNotFound {
+			server.error(w, r, http.StatusInternalServerError, err)
+			return
+		}
+		server.respond(w, r, http.StatusOK, game)
+	})
+}
+
+func (server *Server) handleFindAllGames() http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		service := services.GameService{Store: server.store}
+		games, err := service.FindAll()
+		if err != nil && err != store.ErrRecordNotFound {
+			server.error(w, r, http.StatusInternalServerError, err)
+			return
+		}
+
+		server.respond(w, r, http.StatusOK, games)
 	})
 }

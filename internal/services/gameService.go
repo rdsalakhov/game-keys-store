@@ -15,3 +15,19 @@ func (service *GameService) AddGame(game *model.Game) error {
 	}
 	return nil
 }
+
+func (service *GameService) FindByID(id int) (*model.Game, error) {
+	game, err := service.Store.Game().Find(id)
+	if err != nil {
+		return nil, err
+	}
+	return game, nil
+}
+
+func (service *GameService) FindAll() ([]*model.Game, error) {
+	games, err := service.Store.Game().FindAll()
+	if err != nil {
+		return nil, err
+	}
+	return games, nil
+}

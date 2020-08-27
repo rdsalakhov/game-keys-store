@@ -11,14 +11,33 @@ type GameRepository struct {
 }
 
 func (repo *GameRepository) Find(ID int) (*model.Game, error) {
-	selectQuery := "SELECT id, title, description, price, on_sale FROM games WHERE id = ?"
+	selectQuery := "SELECT id, title, description, price, on_sale, seller_id FROM games WHERE id = ?"
 	game := &model.Game{}
 	if err := repo.store.db.QueryRow(selectQuery, ID).Scan(
 		&game.ID,
 		&game.Title,
 		&game.Description,
 		&game.Price,
-		&game.OnSale); err != nil {
+		&game.OnSale,
+		&game.SellerID); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.ErrRecordNotFound
+		}
+		return nil, err
+	}
+	return game, nil
+}
+
+func (repo *GameRepository) FindByTitle(title string) (*model.Game, error) {
+	selectQuery := "SELECT id, title, description, price, on_sale, seller_id FROM games WHERE title = ?"
+	game := &model.Game{}
+	if err := repo.store.db.QueryRow(selectQuery, title).Scan(
+		&game.ID,
+		&game.Title,
+		&game.Description,
+		&game.Price,
+		&game.OnSale,
+		&game.SellerID); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.ErrRecordNotFound
 		}
@@ -28,7 +47,7 @@ func (repo *GameRepository) Find(ID int) (*model.Game, error) {
 }
 
 func (repo *GameRepository) Create(game *model.Game) error {
-	insertQuery := "INSERT INTO games (title, description, price, on_sale) VALUES (?, ?, ?, ?);"
+	insertQuery := "INSERT INTO games (title, description, price, on_sale, seller_id) VALUES (?, ?, ?, ?, ?);"
 	getIdQuery := "select LAST_INSERT_ID();"
 
 	if _, err := repo.store.db.Exec(insertQuery,

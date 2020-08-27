@@ -16,7 +16,7 @@ import (
 const (
 	accessTokenCookie    = "AccessToken"
 	refreshTokenCookie   = "RefreshToken"
-	contextKeyToken      = "AccessToken"
+	contextKeyID         = "SellerId"
 	accessTokenLifespan  = time.Minute * 15
 	refreshTokenLifespan = time.Hour * 24 * 7
 )
@@ -35,23 +35,23 @@ type TokenDetails struct {
 	RtExpires    int64
 }
 
-func (server *Server) authenticateUser(next http.Handler) http.Handler {
+func (server *Server) authenticateSeller(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		tokenCookie, err := r.Cookie(accessTokenCookie)
 		if err != nil {
 			server.error(w, r, http.StatusUnauthorized, errNoAuthenticated)
 			return
 		}
-
-		token, err := jwt.Parse(tokenCookie.Value, func(token *jwt.Token) (interface{}, error) {
+		claims := jwt.MapClaims{}
+		_, err = jwt.ParseWithClaims(tokenCookie.Value, claims, func(token *jwt.Token) (interface{}, error) {
 			return []byte(os.Getenv("ACCESS_SECRET")), nil
 		})
 		if err != nil {
 			server.error(w, r, http.StatusUnauthorized, errNoAuthenticated)
 			return
 		}
-
-		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), contextKeyToken, token)))
+		sellerID := int(claims["user_id"].(float64))
+		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), contextKeyID, sellerID)))
 	})
 }
 

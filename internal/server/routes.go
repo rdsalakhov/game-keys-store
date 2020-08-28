@@ -9,4 +9,6 @@ func (server *Server) ConfigureRouter() {
 	server.router.HandleFunc("/game/{id:[0-9]+}", server.handleFindGameByID()).Methods("GET")
 	server.router.HandleFunc("/game", server.handleFindAllGames()).Methods("GET")
 	server.router.HandleFunc("/game/{id:[0-9]+}", server.handleDeleteGameByID()).Methods("DELETE")
+
+	server.router.HandleFunc("/key", server.authenticateSeller(server.handlePostKeys())).Methods("POST")
 }

@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"errors"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
@@ -19,11 +18,6 @@ const (
 	contextKeyID         = "SellerId"
 	accessTokenLifespan  = time.Minute * 15
 	refreshTokenLifespan = time.Hour * 24 * 7
-)
-
-var (
-	errNoAuthenticated          = errors.New("no authenticated")
-	errIncorrectEmailOrPassword = errors.New("incorrect email or password")
 )
 
 type TokenDetails struct {

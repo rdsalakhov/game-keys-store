@@ -254,3 +254,59 @@ func (server *Server) handleDeleteGameByID() http.HandlerFunc {
 		server.respond(w, r, http.StatusNoContent, nil)
 	})
 }
+
+func (server *Server) handlePostKeys() http.HandlerFunc {
+	type request struct {
+		GameID int      `json:"game_id"`
+		Keys   []string `json:"keys"`
+	}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		req := &request{}
+		if err := json.NewDecoder(r.Body).Decode(req); err != nil {
+			server.error(w, r, http.StatusBadRequest, err)
+			return
+		}
+		if err := server.checkGameID(req.GameID); err != nil {
+			server.error(w, r, http.StatusUnprocessableEntity, err)
+			return
+		}
+		sellerID := r.Context().Value(contextKeyID).(int)
+		if !server.checkGameOwner(req.GameID, sellerID) {
+			server.error(w, r, http.StatusForbidden, errGameAccessDenied)
+			return
+		}
+		keys := []model.Key{}
+
+		for _, keyString := range req.Keys {
+			key := model.Key{KeyString: keyString}
+			if err := key.Validate(); err != nil {
+				server.error(w, r, http.StatusUnprocessableEntity, err)
+				return
+			}
+			keys = append(keys, key)
+		}
+		service := services.KeyService{Store: server.store}
+		if err := service.AddKeysToGame(req.GameID, &keys); err != nil {
+			server.error(w, r, http.StatusInternalServerError, err)
+			return
+		}
+		server.respond(w, r, http.StatusOK, req)
+	})
+}
+
+func (server *Server) checkGameID(id int) error {
+	service := services.GameService{Store: server.store}
+	_, err := service.FindByID(id)
+	return err
+}
+
+func (server *Server) checkGameOwner(gameID int, sellerID int) bool {
+	service := services.GameService{Store: server.store}
+	game, err := service.FindByID(gameID)
+	if err != nil {
+		return false
+	}
+
+	return game.SellerID == sellerID
+
+}

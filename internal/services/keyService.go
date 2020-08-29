@@ -19,3 +19,16 @@ func (service *KeyService) AddKeysToGame(gameID int, keys *[]model.Key) error {
 	}
 	return nil
 }
+
+func (service *KeyService) FindAvailableKey(gameID int) (*model.Key, error) {
+	key, err := service.Store.Key().FindSingleAvailable(gameID)
+	if err != nil {
+		return nil, err
+	}
+	return key, nil
+}
+
+func (service *KeyService) MarkOnHold(keyID int) error {
+	err := service.Store.Key().UpdateStatus(keyID, "on_hold")
+	return err
+}

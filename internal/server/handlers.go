@@ -294,6 +294,56 @@ func (server *Server) handlePostKeys() http.HandlerFunc {
 	})
 }
 
+func (server *Server) handleBuyGame() http.HandlerFunc {
+	type request struct {
+		Name    string `json:"name"`
+		Email   string `json:"email"`
+		Address string `json:"address"`
+	}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gameID, _ := strconv.Atoi(mux.Vars(r)["id"])
+		req := &request{}
+		if err := json.NewDecoder(r.Body).Decode(req); err != nil {
+			server.error(w, r, http.StatusBadRequest, err)
+			return
+		}
+		session := &model.PaymentSession{
+			CustomerName:    req.Name,
+			CustomerEmail:   req.Email,
+			CustomerAddress: req.Address,
+		}
+		if err := session.Validate(); err != nil {
+			server.error(w, r, http.StatusUnprocessableEntity, err)
+			return
+		}
+
+		if err := server.checkGameID(gameID); err != nil {
+			server.error(w, r, http.StatusNotFound, errItemNotFound)
+			return
+		}
+		keyService := services.KeyService{Store: server.store}
+		key, err := keyService.FindAvailableKey(gameID)
+		if err != nil {
+			server.error(w, r, http.StatusNotFound, errNoKeys)
+			return
+		}
+
+		paymentService := services.PaymentService{Store: server.store}
+		sessionID, err := paymentService.CreateSession(key.ID, req.Name, req.Email, req.Address)
+		if err != nil {
+			server.error(w, r, http.StatusInternalServerError, err)
+			return
+		}
+
+		if err := keyService.MarkOnHold(key.ID); err != nil {
+			paymentService.DeleteSession(sessionID)
+			server.error(w, r, http.StatusInternalServerError, err)
+			return
+		}
+		server.respond(w, r, http.StatusCreated, sessionID)
+	})
+}
+
 func (server *Server) checkGameID(id int) error {
 	service := services.GameService{Store: server.store}
 	_, err := service.FindByID(id)

@@ -1,6 +1,10 @@
 package model
 
-import "time"
+import (
+	validation "github.com/go-ozzo/ozzo-validation"
+	"github.com/go-ozzo/ozzo-validation/is"
+	"time"
+)
 
 type PaymentSession struct {
 	ID              int       `json:"id"`
@@ -10,4 +14,13 @@ type PaymentSession struct {
 	CustomerName    string    `json:"customer_name"`
 	CustomerEmail   string    `json:"customer_email"`
 	CustomerAddress string    `json:"customer_address"`
+}
+
+func (session *PaymentSession) Validate() error {
+	return validation.ValidateStruct(
+		session,
+		validation.Field(&session.CustomerName, validation.Required),
+		validation.Field(&session.CustomerEmail, validation.Required, is.Email),
+		validation.Field(&session.CustomerAddress, validation.Required),
+	)
 }

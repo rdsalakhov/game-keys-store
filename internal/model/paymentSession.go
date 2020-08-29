@@ -14,6 +14,7 @@ type PaymentSession struct {
 	CustomerName    string    `json:"customer_name"`
 	CustomerEmail   string    `json:"customer_email"`
 	CustomerAddress string    `json:"customer_address"`
+	IsPerformed     bool      `json:"is_performed"`
 }
 
 func (session *PaymentSession) Validate() error {

@@ -41,8 +41,18 @@ func (service *PaymentService) CreateSession(keyID int, name string, email strin
 }
 
 func (service *PaymentService) DeleteSession(id int) error {
-	err := service.Store.PaymentSession().DeleteByID(id)
-	return err
+	paymentInfo, err := service.Store.PaymentSession().GetPaymentInfo(id)
+	if err != nil {
+		return err
+	}
+	if err := service.Store.PaymentSession().DeleteByID(id); err != nil {
+		return err
+	}
+	if err := service.Store.Key().UpdateStatus(paymentInfo.KeyID, model.KeyStatusAvailable); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (service *PaymentService) FindByID(id int) (*model.PaymentSession, error) {

@@ -369,6 +369,21 @@ func (server *Server) handlePostPurchase() http.HandlerFunc {
 	})
 }
 
+func (server *Server) handleDeletePurchase() http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		sessionID, _ := strconv.Atoi(mux.Vars(r)["id"])
+		if !server.checkAvailableSession(sessionID) {
+			server.error(w, r, http.StatusBadRequest, errPerformedSession)
+			return
+		}
+		service := services.PaymentService{Store: server.store}
+		if err := service.DeleteSession(sessionID); err != nil {
+			server.error(w, r, http.StatusBadRequest, err)
+			return
+		}
+	})
+}
+
 func (server *Server) handleGetGameKeys() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		gameID, _ := strconv.Atoi(mux.Vars(r)["id"])

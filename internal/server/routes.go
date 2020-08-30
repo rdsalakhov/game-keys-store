@@ -15,4 +15,5 @@ func (server *Server) ConfigureRouter() {
 	server.router.HandleFunc("/key", server.authenticateSeller(server.handlePostKeys())).Methods("POST")
 
 	server.router.HandleFunc("/purchase/{id:[0-9]+}", server.handlePostPurchase()).Methods("POST")
+	server.router.HandleFunc("/purchase/{id:[0-9]+}", server.handleDeletePurchase()).Methods("DELETE")
 }

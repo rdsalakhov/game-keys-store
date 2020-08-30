@@ -75,7 +75,7 @@ func (repo *PaymentSessionRepository) DeleteByID(id int) error {
 func (repo *PaymentSessionRepository) GetPaymentInfo(sessionID int) (*model.PaymentInfo, error) {
 	info := &model.PaymentInfo{}
 	selectQuery :=
-		"SELECT s.account, s.url, g.title, g.price, k.key_string, p.customer_name, p.customer_email, p.customer_address " +
+		"SELECT s.account, s.url, g.title, g.price, k.id, k.key_string, p.customer_name, p.customer_email, p.customer_address " +
 			"FROM sellers s " +
 			"JOIN games g on s.id = g.seller_id " +
 			"JOIN `keys` k on g.id = k.game_id " +
@@ -87,6 +87,7 @@ func (repo *PaymentSessionRepository) GetPaymentInfo(sessionID int) (*model.Paym
 		&info.SellerURL,
 		&info.GameTitle,
 		&info.TotalAmount,
+		&info.KeyID,
 		&info.Key,
 		&info.CustomerName,
 		&info.CustomerEmail,

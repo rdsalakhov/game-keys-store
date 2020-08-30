@@ -77,6 +77,10 @@ func (service *PaymentService) PerformPurchase(sessionID int, cardInfo *model.Ca
 		return err
 	}
 
+	if err := service.Store.Key().UpdateStatus(paymentInfo.KeyID, model.KeyStatusSold); err != nil {
+		return err
+	}
+
 	sellerNotification := &sellerNotification{
 		SellerAmount:    sellerAmount,
 		PlatformAmount:  platformAmount,

@@ -8,9 +8,9 @@ type Game struct {
 	ID          int     `json:"id"`
 	Title       string  `json:"title"`
 	Description string  `json:"description"`
+	SellerID    int     `json:"seller_id"`
 	Price       float32 `json:"price"`
 	OnSale      bool    `json:"on_sale"`
-	SellerID    int     `json:"seller_id"`
 }
 
 func (game *Game) Validate() error {

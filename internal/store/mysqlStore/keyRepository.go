@@ -27,18 +27,46 @@ func (repo *KeyRepository) Find(ID int) (*model.Key, error) {
 }
 
 func (repo *KeyRepository) FindSingleAvailable(gameID int) (*model.Key, error) {
-	selectQuery := "SELECT id, key_string, game_id FROM `keys` WHERE game_id = ? && status = 'available' ORDER BY id LIMIT 1"
+	selectQuery := "SELECT id, key_string, game_id, status FROM `keys` WHERE game_id = ? && status = 'available' ORDER BY id LIMIT 1"
 	key := &model.Key{}
 	if err := repo.store.db.QueryRow(selectQuery, gameID).Scan(
 		&key.ID,
 		&key.KeyString,
-		&key.GameID); err != nil {
+		&key.GameID,
+		&key.Status); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.ErrRecordNotFound
 		}
 		return nil, err
 	}
 	return key, nil
+}
+
+func (repo *KeyRepository) FindByGameID(gameID int) (*[]model.Key, error) {
+	selectQuery := "SELECT id, key_string, game_id, status FROM `keys` WHERE game_id = ?"
+
+	rows, err := repo.store.db.Query(selectQuery, gameID)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.ErrRecordNotFound
+		}
+		return nil, err
+	}
+	defer rows.Close()
+	keys := []model.Key{}
+
+	for rows.Next() {
+		key := model.Key{}
+		if err := rows.Scan(&key.ID,
+			&key.KeyString,
+			&key.GameID,
+			&key.Status); err != nil {
+			return nil, err
+		}
+		keys = append(keys, key)
+	}
+	return &keys, nil
 }
 
 func (repo *KeyRepository) UpdateStatus(keyID int, newStatus string) error {

@@ -267,7 +267,7 @@ func (server *Server) handlePostKeys() http.HandlerFunc {
 			return
 		}
 		if err := server.checkGameID(req.GameID); err != nil {
-			server.error(w, r, http.StatusUnprocessableEntity, err)
+			server.error(w, r, http.StatusUnprocessableEntity, errGameAccessDenied)
 			return
 		}
 		sellerID := r.Context().Value(contextKeyID).(int)
@@ -276,7 +276,6 @@ func (server *Server) handlePostKeys() http.HandlerFunc {
 			return
 		}
 		keys := []model.Key{}
-
 		for _, keyString := range req.Keys {
 			key := model.Key{KeyString: keyString}
 			if err := key.Validate(); err != nil {
@@ -367,6 +366,29 @@ func (server *Server) handlePostPurchase() http.HandlerFunc {
 			return
 		}
 		server.respond(w, r, http.StatusNoContent, nil)
+	})
+}
+
+func (server *Server) handleGetGameKeys() http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gameID, _ := strconv.Atoi(mux.Vars(r)["id"])
+		if err := server.checkGameID(gameID); err != nil {
+			server.error(w, r, http.StatusUnprocessableEntity, errItemNotFound)
+			return
+		}
+		sellerID := r.Context().Value(contextKeyID).(int)
+		if !server.checkGameOwner(gameID, sellerID) {
+			server.error(w, r, http.StatusForbidden, errGameAccessDenied)
+			return
+		}
+
+		service := services.KeyService{Store: server.store}
+		keys, err := service.FindByGameID(gameID)
+		if err != nil {
+			server.respond(w, r, http.StatusInternalServerError, err)
+			return
+		}
+		server.respond(w, r, http.StatusOK, keys)
 	})
 }
 

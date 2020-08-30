@@ -12,7 +12,7 @@ type KeyService struct {
 func (service *KeyService) AddKeysToGame(gameID int, keys *[]model.Key) error {
 	for _, key := range *keys {
 		key.GameID = gameID
-		key.Status = model.KeyStatusEnum(0)
+		key.Status = model.KeyStatusAvailable
 		if err := service.Store.Key().Create(&key); err != nil {
 			return err
 		}
@@ -28,7 +28,15 @@ func (service *KeyService) FindAvailableKey(gameID int) (*model.Key, error) {
 	return key, nil
 }
 
+func (service *KeyService) FindByGameID(gameID int) (*[]model.Key, error) {
+	keys, err := service.Store.Key().FindByGameID(gameID)
+	if err != nil {
+		return nil, err
+	}
+	return keys, nil
+}
+
 func (service *KeyService) MarkOnHold(keyID int) error {
-	err := service.Store.Key().UpdateStatus(keyID, "on_hold")
+	err := service.Store.Key().UpdateStatus(keyID, model.KeyStatusOnHold)
 	return err
 }

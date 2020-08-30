@@ -11,16 +11,17 @@ type PaymentSessionRepository struct {
 }
 
 func (repo *PaymentSessionRepository) Find(ID int) (*model.PaymentSession, error) {
-	selectQuery := "SELECT id, key_id, price, date, customer_name, customer_email, customer_address FROM payment_sessions WHERE id = ?"
+	selectQuery := "SELECT id, key_id, price, customer_name, customer_email, customer_address, is_performed, is_notified FROM payment_sessions WHERE id = ?"
 	session := &model.PaymentSession{}
 	if err := repo.store.db.QueryRow(selectQuery, ID).Scan(
 		&session.ID,
 		&session.KeyID,
 		&session.Price,
-		&session.Date,
 		&session.CustomerName,
 		&session.CustomerEmail,
-		&session.CustomerAddress); err != nil {
+		&session.CustomerAddress,
+		&session.IsPerformed,
+		&session.IsNotified); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.ErrRecordNotFound
 		}
@@ -68,5 +69,61 @@ func (repo *PaymentSessionRepository) DeleteByID(id int) error {
 		return store.ErrRecordNotFound
 	}
 
+	return nil
+}
+
+func (repo *PaymentSessionRepository) GetPaymentInfo(sessionID int) (*model.PaymentInfo, error) {
+	info := &model.PaymentInfo{}
+	selectQuery :=
+		"SELECT s.account, s.url, g.title, g.price, k.key_string, p.customer_name, p.customer_email, p.customer_address " +
+			"FROM sellers s " +
+			"JOIN games g on s.id = g.seller_id " +
+			"JOIN `keys` k on g.id = k.game_id " +
+			"JOIN payment_sessions p on k.id = p.key_id " +
+			"WHERE p.id = ?"
+
+	if err := repo.store.db.QueryRow(selectQuery, sessionID).Scan(
+		&info.SellerAccount,
+		&info.SellerURL,
+		&info.GameTitle,
+		&info.TotalAmount,
+		&info.Key,
+		&info.CustomerName,
+		&info.CustomerEmail,
+		&info.CustomerAddress); err != nil {
+		return nil, err
+	}
+	return info, nil
+}
+
+func (repo *PaymentSessionRepository) UpdateNotifiedStatus(sessionID int, newStatus bool) error {
+	updateQuery := "UPDATE payment_sessions SET is_notified = TRUE WHERE id = ?"
+	result, err := repo.store.db.Exec(updateQuery, sessionID)
+	if err != nil {
+		return err
+	}
+	rows, err := result.RowsAffected()
+	if rows == 0 {
+		return store.ErrRecordNotFound
+	}
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (repo *PaymentSessionRepository) UpdatePerformedStatus(sessionID int, newStatus bool) error {
+	updateQuery := "UPDATE payment_sessions SET is_performed = TRUE WHERE id = ?"
+	result, err := repo.store.db.Exec(updateQuery, sessionID)
+	if err != nil {
+		return err
+	}
+	rows, err := result.RowsAffected()
+	if rows == 0 {
+		return store.ErrRecordNotFound
+	}
+	if err != nil {
+		return err
+	}
 	return nil
 }

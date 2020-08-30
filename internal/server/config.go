@@ -1,9 +1,13 @@
 package server
 
 type Config struct {
-	DbConnection    string `yml:"db_connection"`
-	RedisConnection string `yml:"redis_connection"`
-	Port            string `yml:"port"`
-	AccessSecret    string `yml:"access_secret"`
-	RefreshSecret   string `yml:"refresh_secret"`
+	DbConnection          string  `yml:"dbConnection"`
+	RedisConnection       string  `yml:"redisConnection"`
+	Port                  string  `yml:"port"`
+	AccessSecret          string  `yml:"accessSecret"`
+	RefreshSecret         string  `yml:"refreshSecret"`
+	PlatformFeeShare      float64 `yml:"PlatformFeeShare"`
+	PlatformAccount       string  `yml:"PlatformAccount"`
+	PlatformEmail         string  `yml:"PlatformEmail"`
+	PlatformEmailPassword string  `yml:"PlatformEmailPassword"`
 }

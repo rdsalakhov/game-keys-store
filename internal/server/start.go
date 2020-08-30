@@ -8,6 +8,7 @@ import (
 	"github.com/rdsalakhov/game-keys-store/internal/store/mysqlStore"
 	"net/http"
 	"os"
+	"strconv"
 )
 
 func Start(config *Config) error {
@@ -50,4 +51,8 @@ func newRedis(redisConnection string) (*redis.Client, error) {
 func writeToEnv(config *Config) {
 	os.Setenv("ACCESS_SECRET", config.AccessSecret)
 	os.Setenv("REFRESH_SECRET", config.RefreshSecret)
+	os.Setenv("PLATFORM_FEE_SHARE", strconv.FormatFloat(config.PlatformFeeShare, 'E', -1, 64))
+	os.Setenv("PLATFORM_ACCOUNT", config.PlatformAccount)
+	os.Setenv("PLATFORM_EMAIL", config.PlatformEmail)
+	os.Setenv("PLATFORM_EMAIL_PASSWORD", config.PlatformEmailPassword)
 }

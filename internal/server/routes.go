@@ -13,4 +13,6 @@ func (server *Server) ConfigureRouter() {
 	server.router.HandleFunc("/game/{id:[0-9]+}/buy", server.handleBuyGame()).Methods("POST")
 
 	server.router.HandleFunc("/key", server.authenticateSeller(server.handlePostKeys())).Methods("POST")
+
+	server.router.HandleFunc("/purchase/{id:[0-9]+}", server.handlePostPurchase()).Methods("POST")
 }

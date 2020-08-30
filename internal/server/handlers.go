@@ -344,6 +344,32 @@ func (server *Server) handleBuyGame() http.HandlerFunc {
 	})
 }
 
+func (server *Server) handlePostPurchase() http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		sessionID, _ := strconv.Atoi(mux.Vars(r)["id"])
+		if !server.checkAvailableSession(sessionID) {
+			server.error(w, r, http.StatusBadRequest, errPerformedSession)
+			return
+		}
+		cardInfo := &model.CardInfo{}
+		if err := json.NewDecoder(r.Body).Decode(cardInfo); err != nil {
+			server.error(w, r, http.StatusBadRequest, err)
+			return
+		}
+		if !checkCardNumber(cardInfo.Number) {
+			server.error(w, r, http.StatusBadRequest, errInvalidCardNumber)
+			return
+		}
+
+		service := services.PaymentService{Store: server.store}
+		if err := service.PerformPurchase(sessionID, cardInfo); err != nil {
+			server.error(w, r, http.StatusInternalServerError, err)
+			return
+		}
+		server.respond(w, r, http.StatusNoContent, nil)
+	})
+}
+
 func (server *Server) checkGameID(id int) error {
 	service := services.GameService{Store: server.store}
 	_, err := service.FindByID(id)
@@ -359,4 +385,35 @@ func (server *Server) checkGameOwner(gameID int, sellerID int) bool {
 
 	return game.SellerID == sellerID
 
+}
+
+func (server *Server) checkAvailableSession(sessionID int) bool {
+	service := services.PaymentService{Store: server.store}
+	session, err := service.FindByID(sessionID)
+	if err != nil {
+		return false
+	}
+	return !session.IsPerformed
+}
+
+func checkCardNumber(stringNumber string) bool {
+	var luhn int64
+	intNumber, err := strconv.ParseInt(stringNumber, 10, 64)
+	if err != nil {
+		return false
+	}
+	for i := 0; intNumber > 0; i++ {
+		cur := intNumber % 10
+
+		if i%2 == 0 { // even
+			cur = cur * 2
+			if cur > 9 {
+				cur = cur%10 + cur/10
+			}
+		}
+
+		luhn += cur
+		intNumber = intNumber / 10
+	}
+	return luhn%10 == 0
 }

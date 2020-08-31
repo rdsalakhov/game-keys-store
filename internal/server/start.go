@@ -18,7 +18,7 @@ func Start(config *Config) error {
 	}
 	defer db.Close()
 	store := mysqlStore.New(db)
-	redis, err := newRedis(config.RedisConnection)
+	redis, err := newRedis(config.RedisConnection, config.RedisPassword)
 	if err != nil {
 		return err
 	}
@@ -37,9 +37,10 @@ func newDb(databaseURL string) (*sql.DB, error) {
 	return db, nil
 }
 
-func newRedis(redisConnection string) (*redis.Client, error) {
+func newRedis(redisConnection string, password string) (*redis.Client, error) {
 	client := redis.NewClient(&redis.Options{
-		Addr: redisConnection, //redis port
+		Addr:     redisConnection, //redis port
+		Password: password,
 	})
 	_, err := client.Ping(context.Background()).Result()
 	if err != nil {

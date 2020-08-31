@@ -3,6 +3,7 @@ package server
 type Config struct {
 	DbConnection          string  `yml:"dbConnection"`
 	RedisConnection       string  `yml:"redisConnection"`
+	RedisPassword         string  `yml:"redisPassword"`
 	Port                  string  `yml:"port"`
 	AccessSecret          string  `yml:"accessSecret"`
 	RefreshSecret         string  `yml:"refreshSecret"`

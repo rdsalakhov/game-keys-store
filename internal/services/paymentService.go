@@ -122,7 +122,7 @@ func (service *PaymentService) sendKey(email string, game string, name string, k
 			"Thank you for your purchase!\r\n"+
 			"Here's your key for %s: %s\r\n"+
 			"Have fun!", email, name, game, key))
-	err := smtp.SendMail("smtp.gmail.com:25", auth, from, to, msg)
+	err := smtp.SendMail("smtp.gmail.com:587", auth, from, to, msg)
 	if err != nil {
 		return err
 	}

@@ -1,0 +1,11 @@
+#dbConnection : "root:root@tcp(mysql-db:3306)/game_keys_db_mysql"
+dbConnection : "mysql://bc05c24afe8841:57838b06@tcp(us-cdbr-east-02.cleardb.com:3306)/heroku_1cd1103a65923e2"
+port : ":8080"
+#redisConnection : "redis:6379"
+redisConnection : "redis://h:p9d46e1338b8869085f9e9a904b27cd4809fb8dac57b0014ed0a8c584684af589@ec2-54-235-169-237.compute-1.amazonaws.com:11559"
+accessSecret : "asdfkasdflkadjsfskl"
+refreshSecret : "sdlfkjio3rwefjnlksdfjo"
+platformFeeShare : 0.05
+platformAccount : "2398471212390412384"
+platformEmail : "tyrlybeam@gmail.com"
+platformEmailPassword : "73918183"

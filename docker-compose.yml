@@ -1,6 +1,11 @@
 version: "3"
 
 services:
+  game-keys-store-server:
+    container_name: game-keys-store-server
+    build: .
+    ports:
+      - 8080:8080
   mysql-db:
     container_name: mysql-db
     image: mysql:5.7
@@ -10,3 +15,9 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=game_keys_db_mysql
+  redis:
+    container_name: redis
+    image: redis:6.0.6
+    ports:
+      - 6379:6379
+    restart: always

@@ -6,6 +6,7 @@ import (
 	"github.com/go-redis/redis/v8"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/rdsalakhov/game-keys-store/internal/store/mysqlStore"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -25,7 +26,9 @@ func Start(config *Config) error {
 	writeToEnv(config)
 
 	server := NewServer(store, redis)
-	return http.ListenAndServe(config.Port, server)
+	//return http.ListenAndServe(config.Port, server)
+	log.Print("Starting")
+	return http.ListenAndServe(":"+os.Getenv("PORT"), server)
 }
 
 func newDb(databaseURL string) (*sql.DB, error) {

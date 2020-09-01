@@ -21,6 +21,8 @@ API для покупки и продажи игровых ключей. Про�
 - Добавление игр и ключей
 - Создание и оплата платежных сеcсий
 - Удаление неоплаченых сессий
+- Отправка ключа по электронной почте ([link](https://github.com/rdsalakhov/game-keys-store/blob/master/internal/services/paymentService.go#L111))
+- Отправка запроса с оповещением продавцу ([link](https://github.com/rdsalakhov/game-keys-store/blob/master/internal/services/notificationService.go))
 - Изменение параметров платформы в config файле ([link](https://github.com/rdsalakhov/game-keys-store/blob/master/configs/config.yml))
 - JWT аутентификация по Access и Refresh токенам ([link](https://github.com/rdsalakhov/game-keys-store/blob/master/internal/server/authenti%D1%81ation.go))
 - Хранение токенов пользователей в Redis

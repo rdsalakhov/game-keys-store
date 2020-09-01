@@ -381,6 +381,7 @@ func (server *Server) handleDeletePurchase() http.HandlerFunc {
 			server.error(w, r, http.StatusBadRequest, err)
 			return
 		}
+		server.respond(w, r, http.StatusNoContent, nil)
 	})
 }
 

@@ -267,7 +267,7 @@ func (server *Server) handlePostKeys() http.HandlerFunc {
 			return
 		}
 		if err := server.checkGameID(req.GameID); err != nil {
-			server.error(w, r, http.StatusUnprocessableEntity, errGameAccessDenied)
+			server.error(w, r, http.StatusNotFound, errItemNotFound)
 			return
 		}
 		sellerID := r.Context().Value(contextKeyID).(int)

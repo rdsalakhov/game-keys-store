@@ -211,7 +211,7 @@ func (server *Server) handleFindGameByID() http.HandlerFunc {
 		if err == store.ErrRecordNotFound {
 
 		} else if err != nil && err != store.ErrRecordNotFound {
-			server.error(w, r, http.StatusInternalServerError, err)
+			server.error(w, r, http.StatusNotFound, errItemNotFound)
 			return
 		}
 		server.respond(w, r, http.StatusOK, game)

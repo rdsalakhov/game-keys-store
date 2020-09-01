@@ -91,16 +91,16 @@ func (service *PaymentService) PerformPurchase(sessionID int, cardInfo *model.Ca
 		return err
 	}
 
-	//sellerNotification := &sellerNotification{
-	//	SellerAmount:    sellerAmount,
-	//	PlatformAmount:  platformAmount,
-	//	SessionID:       sessionID,
-	//	CustomerName:    paymentInfo.CustomerName,
-	//	CustomerEmail:   paymentInfo.CustomerEmail,
-	//	CustomerAddress: paymentInfo.CustomerAddress,
-	//}
-	//noteService := &NotificationService{Store: service.Store}
-	//go noteService.NotifySeller(paymentInfo.SellerURL, sellerNotification, sessionID)
+	sellerNotification := &sellerNotification{
+		SellerAmount:    sellerAmount,
+		PlatformAmount:  platformAmount,
+		SessionID:       sessionID,
+		CustomerName:    paymentInfo.CustomerName,
+		CustomerEmail:   paymentInfo.CustomerEmail,
+		CustomerAddress: paymentInfo.CustomerAddress,
+	}
+	noteService := &NotificationService{Store: service.Store}
+	go noteService.NotifySeller(paymentInfo.SellerURL, sellerNotification, sessionID)
 
 	if err := service.Store.PaymentSession().UpdatePerformedStatus(sessionID, true); err != nil {
 		logrus.Printf("failed to mark session %d as performed", sessionID)

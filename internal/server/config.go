@@ -11,4 +11,5 @@ type Config struct {
 	PlatformAccount       string  `yml:"PlatformAccount"`
 	PlatformEmail         string  `yml:"PlatformEmail"`
 	PlatformEmailPassword string  `yml:"PlatformEmailPassword"`
+	NotificationSalt      string  `yml:"notificationSalt"`
 }

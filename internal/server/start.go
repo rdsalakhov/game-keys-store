@@ -28,7 +28,11 @@ func Start(config *Config) error {
 	server := NewServer(store, redis)
 	//return http.ListenAndServe(config.Port, server)
 	log.Print("Starting")
-	return http.ListenAndServe(":"+os.Getenv("PORT"), server)
+	err = http.ListenAndServe(config.Port, server)
+	if err == nil {
+		log.Printf("Listening on %s", config.Port)
+	}
+	return err
 }
 
 func newDb(databaseURL string) (*sql.DB, error) {
@@ -59,4 +63,5 @@ func writeToEnv(config *Config) {
 	os.Setenv("PLATFORM_ACCOUNT", config.PlatformAccount)
 	os.Setenv("PLATFORM_EMAIL", config.PlatformEmail)
 	os.Setenv("PLATFORM_EMAIL_PASSWORD", config.PlatformEmailPassword)
+	os.Setenv("NOTIFICATION_SALT", config.NotificationSalt)
 }

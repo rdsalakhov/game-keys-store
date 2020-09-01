@@ -11,3 +11,4 @@ platformFeeShare : 0.05
 platformAccount : "2398471212390412384"
 platformEmail : "tyrlybeam@gmail.com"
 platformEmailPassword : "73918183"
+notificationSalt : "salt"

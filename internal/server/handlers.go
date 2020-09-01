@@ -388,7 +388,7 @@ func (server *Server) handleGetGameKeys() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		gameID, _ := strconv.Atoi(mux.Vars(r)["id"])
 		if err := server.checkGameID(gameID); err != nil {
-			server.error(w, r, http.StatusUnprocessableEntity, errItemNotFound)
+			server.error(w, r, http.StatusNotFound, errItemNotFound)
 			return
 		}
 		sellerID := r.Context().Value(contextKeyID).(int)

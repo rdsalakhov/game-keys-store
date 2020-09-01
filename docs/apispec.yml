@@ -1,0 +1,592 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: "Game-keys-store"
+  description: "API для покупки и продажи игровых ключей. Продавец может добавить игру и ключи, которые затем будут доступны для покупки. Покупатель получает ключ на электронную почту, а на сервер продавца отправляется запрос, в котором содержится информация о покупателе."
+servers:
+  - url: ":("
+tags:
+  - name: Register
+    description: Регистрация
+  - name: Login
+    description: Авторизация
+  - name: Refresh
+    description: Обновление токена
+  - name: Game
+    description: Операции с играми
+  - name: Key
+    description: Операции с ключами
+  - name: Purchase
+    description: Операции с платежной сессией
+
+
+paths:
+  /register:
+    parameters:
+      - name: Данные о пользователе
+        in: query
+        schema:
+          $ref: "#/components/schemas/registerRequest"
+    post:
+      tags:
+        - Register
+      description: Создание учетной записи продавца
+      responses:
+        '201':
+          description: Регистрация прошла успешно
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/registerResponse"
+        '400':
+          description: "Отправлен некорректный объект"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        '422':
+          description: "Не удалось создать запись в базе данных"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        '500':
+          description: "Произошла непредвиденная ошибка"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+
+  /login:
+    get:
+      tags:
+        - Login
+      description: Получить access и refresh токены
+      parameters:
+        - name: credentials
+          in: query
+          description: Электронная почта и пароль
+          required: true
+          schema:
+            $ref: "#/components/schemas/loginRequest"
+      responses:
+        '200':
+          description: Авторизация успешно пройдена
+        '401':
+          description: "Неверный логин или пароль"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        '500':
+          description: "Произошла непредвиденная ошибка"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+
+  /refresh:
+    post:
+      tags:
+        - Refresh
+      description: Обновить токены
+      security:
+        - RefreshToken : []
+      responses:
+        '200':
+          description: Токены обновлены
+        '401':
+          description: "Некорректный refresh токен"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        '500':
+          description: "Произошла непредвиденная ошибка"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+
+  /game/{id}:
+    parameters:
+      - name: id
+        in: path
+        description: Идентификатор игры
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - Game
+      description: "Выдает игру по указанному id"
+      responses:
+        200:
+          description: "Игра найдена"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/gameResponse"
+        404:
+          description: Игра не найдена
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        500:
+          description: "Произошла непредвиденная ошибка"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+
+    delete:
+      tags:
+        - Game
+      description: Удаляет игру по указанному id
+      security:
+        - AccessToken : []
+      responses:
+        204:
+          description: Игра удалена
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/gameResponse"
+        401:
+          description: Ошибка аутентификации
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        404:
+          description: Игра не найдена
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        500:
+          description: "Произошла непредвиденная ошибка"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+
+
+  /game:
+    post:
+      tags:
+        - Game
+      description: Добавить игру
+      security:
+        - AccessToken: []
+      parameters:
+        - name: Игра
+          in: query
+          schema:
+            $ref: "#/components/schemas/postGameRequest"
+      responses:
+        '200':
+          description: Игра добавлена
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/gameResponse"
+        '400':
+          description: Некорректный запрос
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        '401':
+          description: Ошибка аутентификации
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        '422':
+          description: Переданы некорректные данные об игре
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        '500':
+          description: Не удалось добавить игру
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+
+    get:
+      tags:
+        - Game
+      description: Получить все игры
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/gameResponse"
+        '500':
+          description: Не удалось получить игры из базы данных
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+
+  /game/{id}/keys:
+    parameters:
+      - name: id
+        in: path
+        description: Идентификатор игры
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - Key
+      description: Получить ключи для игры по указанному ID
+      security:
+        - AccessToken: []
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/getGameKeysResponse"
+        '401':
+          description: Ошибка аутентификации
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        '403':
+          description: "Не удалось получить доступ к данной игре: получать ключи может только создатель"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        '404':
+          description: Игра с указанным ID не найдена
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        '500':
+          description: Произошла непредвиденная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+
+  /game/{id}/buy:
+    parameters:
+      - name: id
+        in: path
+        description: Идентификатор игры
+        required: true
+        schema:
+          type: string
+      - name: Информация о покупателе
+        in: query
+        description: Информация о покупателе
+        required: true
+        schema:
+          $ref: "#/components/schemas/postGameBuyRequest"
+    post:
+      tags:
+        - Purchase
+      description: Получить ключи для игры по указанному ID
+      security:
+        - AccessToken: []
+      responses:
+        '201':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/postGameBuyResponse"
+        '400':
+          description: Не удалось разобрать запрос
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        '404':
+          description: Игра не найдена или нет доступных ключей
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        '422':
+          description: Переданы некорректные данные о покупателе
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        '500':
+          description: Произошла непредвиденная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+
+  /purchase/{id}:
+    parameters:
+      - name: id
+        in: path
+        description: Идентификатор игры
+        required: true
+        schema:
+          type: string
+
+    post:
+      tags:
+        - Purchase
+      description: Оплатить покупку
+      parameters:
+        - name: Данные о платеже
+          in: query
+          description: Данные о платеже
+          required: true
+          schema:
+            $ref: "#/components/schemas/postPurchaseRequest"
+      responses:
+        '204':
+          description: Успешно
+        '400':
+          description: Не удалось разобрать запрос
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        '500':
+          description: Произошла непредвиденная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+    delete:
+      tags:
+        - Purchase
+      description: Удалить неоплаченную сессию
+      responses:
+        '204':
+          description: Успешно
+        '400':
+          description: Сессия не найдена или уже оплачена
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        '500':
+          description: Произошла непредвиденная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+
+  /key:
+    parameters:
+      - name: Ключи
+        in: query
+        schema:
+          type: array
+          items:
+            $ref: "#/components/schemas/postKeyRequest"
+    post:
+      tags:
+        - Key
+      description: Добавить ключ к игре
+      responses:
+        '200':
+          description: Успешно
+        '400':
+          description: Не удалось разобрать запрос
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        '403':
+          description: "Не удалось получить доступ к игре: добавлять ключи может только создатель"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        '404':
+          description: Игра с указанным id не найдена
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        '422':
+          description: Переданы некорректные данные о ключах
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        '500':
+          description: Произошла непредвиденная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+components:
+  securitySchemes:
+    AccessToken:
+      type: apiKey
+      name: AccessToken
+      in: cookie
+    RefreshToken:
+      type: apiKey
+      name: RefreshToken
+      in: cookie
+  schemas:
+    registerResponse:
+      type: object
+      properties:
+        email:
+          type: string
+          example: "mail@xample.com"
+        url:
+          type: string
+          example: "seller.com/notify"
+        account:
+          type: string
+          example: "4900000000000001"
+    registerRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          example: "mail@xample.com"
+        password:
+          type: string
+          example: "password"
+        url:
+          type: string
+          example: "seller.com/notify"
+        account:
+          type: string
+          example: "4900000000000001"
+    loginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          example: "mail@xample.com"
+        password:
+          type: string
+          example: "password"
+    postGameRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          example: "fall guys"
+        description:
+          type: string
+          example: "online competitive game"
+        Price:
+          type: number
+          example: 9.99
+    gameResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: "fall guys"
+        description:
+          type: string
+          example: "online competitive game"
+        price:
+          type: number
+          example: 9.99
+        on_sale:
+          type: boolean
+          example: true
+        seller_id:
+          type: integer
+          example: 1
+
+    postKeyRequest:
+      type: object
+      properties:
+        game_id:
+          type: integer
+          example: 1
+        keys:
+          type: array
+          items:
+            type: string
+            example: "1234-1234-1234-1234"
+
+    postGameBuyRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: 1
+        email:
+          type: string
+          example: "customer@xample.com"
+        address:
+          type: string
+          example: "Perm krai, Perm, Lenina St. 1"
+
+    postGameBuyResponse:
+      type: object
+      properties:
+        session_id:
+          type: integer
+          example: 1
+
+    postPurchaseRequest:
+      type: object
+      properties:
+        number:
+          type: string
+          example: 49000000000000001
+        name:
+          type: string
+          example: "JOHN DOE"
+        exp_date:
+          type: string
+          example: "09/24"
+        cvv:
+          type: string
+          example: "123"
+
+    getGameKeysResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        key_string:
+          type: string
+          example: "1234-1234-1234-1235"
+        game_id:
+          type: integer
+          example: 1
+        status:
+          type: string
+          example: "available"
+
+    errorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "some error"
